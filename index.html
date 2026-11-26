@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MysteryFate</title>
+  <meta name="description" content="An interactive choose-your-fate story game. Every choice writes your ending." />
+  <meta name="theme-color" content="#07060d" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="MysteryFate" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- Link previews (WhatsApp, Discord, X, Facebook...). og:image must be an absolute URL. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="MysteryFate" />
+  <meta property="og:title" content="MysteryFate: every choice writes your ending" />
+  <meta property="og:description" content="A free choose-your-fate story game: 28 stories across horror, mystery, comedy, fantasy, sci-fi, thriller, adventure and drama. Timed choices, secret endings, read-aloud voices. Plays in your browser, even offline." />
+  <meta property="og:url" content="https://chenjsfrost.github.io/mysteryfate-app/" />
+  <meta property="og:image" content="https://chenjsfrost.github.io/mysteryfate-app/icons/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="MysteryFate: a glowing crystal ball and the tagline 'Every choice writes your ending.'" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="bg"></div>
+  <canvas id="particles"></canvas>
+  <div id="vignette"></div>
+  <div id="flash"></div>
+
+  <div id="app">
+    <header id="topbar">
+      <button id="btn-home" class="icon-btn" title="Home" aria-label="Home">⌂</button>
+      <div id="brand" class="brand-mini">Mystery<span>Fate</span></div>
+      <div class="topbar-right">
+        <button id="btn-voice" class="icon-btn" title="Read aloud (V)" aria-label="Toggle read aloud">🗣️</button>
+        <button id="btn-sound" class="icon-btn" title="Sound (M)" aria-label="Toggle sound">🔊</button>
+        <button id="btn-settings" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- TITLE -->
+      <section id="screen-title" class="screen active">
+        <div class="title-wrap">
+          <div class="title-eyebrow">an interactive fate engine</div>
+          <h1 class="title-logo" data-text="MYSTERY FATE">MYSTERY FATE</h1>
+          <p class="title-sub">Every choice writes your ending.<br />Some choices write your obituary.</p>
+          <div class="title-actions">
+            <button id="btn-continue" class="btn btn-primary hidden"></button>
+            <button id="btn-begin" class="btn btn-primary">Begin</button>
+            <button id="btn-surprise" class="btn btn-ghost">🎲 Surprise me</button>
+            <button id="btn-journal" class="btn btn-ghost">📜 Journal</button>
+            <button id="btn-install" class="btn btn-ghost hidden">📲 Install app</button>
+          </div>
+          <div id="title-progress" class="title-progress"></div>
+          <p class="title-tip">Tip: some decisions are timed. Read at your own pace, and the clock only starts when you reveal the choices. Use keys <kbd>1</kbd>–<kbd>4</kbd> to choose, <kbd>Space</kbd> to skip text, <kbd>V</kbd> to toggle the read-aloud voices.</p>
+          <p class="title-links"><a href="privacy.html">About &amp; Privacy</a></p>
+        </div>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section id="screen-categories" class="screen">
+        <h2 class="screen-title">Choose your genre</h2>
+        <p class="screen-sub">What kind of night do you want to have?</p>
+        <div id="category-grid" class="category-grid"></div>
+      </section>
+
+      <!-- STORY LIST -->
+      <section id="screen-stories" class="screen">
+        <button class="back-link" data-goto="categories">‹ Genres</button>
+        <h2 id="stories-heading" class="screen-title"></h2>
+        <p id="stories-sub" class="screen-sub"></p>
+        <div id="story-grid" class="story-grid"></div>
+      </section>
+
+      <!-- JOURNAL -->
+      <section id="screen-journal" class="screen">
+        <button class="back-link" data-goto="title">‹ Home</button>
+        <h2 class="screen-title">📜 Your Journal</h2>
+        <p id="journal-sub" class="screen-sub"></p>
+        <div id="journal-body"></div>
+      </section>
+
+      <!-- STORY MAP -->
+      <section id="screen-map" class="screen">
+        <button class="back-link" data-goto="stories">‹ Stories</button>
+        <div id="map-body" class="map-screen"></div>
+      </section>
+
+      <!-- READER (re-read a finished run) -->
+      <section id="screen-reader" class="screen">
+        <button class="back-link" data-goto="journal">‹ Journal</button>
+        <div id="reader-body" class="reader"></div>
+      </section>
+
+      <!-- GAME -->
+      <section id="screen-game" class="screen">
+        <div id="hud" class="hud">
+          <div class="hud-left">
+            <span id="hud-title" class="hud-title"></span>
+            <span id="hud-stage" class="hud-stage"></span>
+          </div>
+          <div id="hud-meters" class="hud-meters"></div>
+        </div>
+        <div id="stage" class="stage">
+          <div id="scene-view" class="scene-view"><div id="scene-bg" class="scene-bg"></div><div id="scene-art" class="scene-art"></div></div>
+          <div id="scene-stamp" class="scene-stamp" aria-live="polite"></div>
+          <div id="scene-title" class="scene-title"></div>
+          <div id="narrative" class="narrative" aria-live="polite"></div>
+          <div id="timer" class="timer hidden">
+            <div class="timer-label"><span>⏳ DECIDE</span><span id="timer-secs"></span></div>
+            <div class="timer-track"><div id="timer-bar" class="timer-bar"></div></div>
+          </div>
+          <div id="choices" class="choices"></div>
+          <div id="skip-hint" class="skip-hint">click or press space to skip ▸▸</div>
+        </div>
+        <button id="more-below" class="more-below" type="button" aria-label="Scroll down to keep reading">▾ More below</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-x icon-btn" data-close aria-label="Close">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/core.js"></script>
+  <!-- Stories: each file calls registerStory({...}). Add new stories here. -->
+  <script src="stories/horror-floor13.js"></script>
+  <script src="stories/horror-keepers-log.js"></script>
+  <script src="stories/mystery-last-passenger.js"></script>
+  <script src="stories/mystery-quiet-street.js"></script>
+  <script src="stories/comedy-henchperson.js"></script>
+  <script src="stories/comedy-best-person.js"></script>
+  <script src="stories/fantasy-ember-crown.js"></script>
+  <script src="stories/fantasy-cartographers-apprentice.js"></script>
+  <script src="stories/scifi-kepler-deep.js"></script>
+  <script src="stories/scifi-juniper.js"></script>
+  <script src="stories/thriller-midnight-gala.js"></script>
+  <script src="stories/thriller-dead-drop.js"></script>
+  <script src="stories/adventure-whiteout.js"></script>
+  <script src="stories/adventure-merrow.js"></script>
+  <script src="stories/drama-second-chances.js"></script>
+  <script src="stories/scifi-groundhog-shift.js"></script>
+  <script src="stories/mystery-room-9.js"></script>
+  <script src="stories/comedy-babysitting.js"></script>
+  <script src="stories/adventure-dustwater.js"></script>
+  <script src="stories/fantasy-villains-apprentice.js"></script>
+  <script src="stories/thriller-deep-shift.js"></script>
+  <script src="stories/mystery-two-phones.js"></script>
+  <script src="stories/mystery-page-47.js"></script>
+  <script src="stories/thriller-seven-hours.js"></script>
+  <script src="stories/horror-the-end.js"></script>
+  <script src="stories/scifi-deja-vu.js"></script>
+  <script src="stories/drama-letters-2046.js"></script>
+  <script src="stories/comedy-narrator-lying.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/engine.js"></script>
+</body>
+</html>
